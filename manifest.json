@@ -1,0 +1,28 @@
+{
+    "name": "TicketMasterOtp",
+    "version": "0.1",
+    "description":"This Chrome Extention is built to retrive TicketMaster Account Otp",
+    "manifest_version": 3,
+    "background": {
+      "service_worker": "background.js"
+        },
+    "permissions": [
+      "scripting",
+      "activeTab",
+      "storage",
+      "tabs",
+      "alarms"
+    ],
+    "host_permissions":[
+      "*://*.ticketmaster.com/*",
+      "*://ticketmaster.com/*"
+    ],
+    "content_scripts":[{
+      "matches":["https://www.ticketmaster.com/event/*","https://auth.ticketmaster.com/*"],
+      "js":["jquery.min.js","content-script.js"]
+    }],
+    "action": {
+      "default_icon":"icon.png",
+      "default_popup": "popup.html"
+    }
+  }
