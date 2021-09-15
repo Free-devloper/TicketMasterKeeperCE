@@ -1,71 +1,44 @@
-var data_mails=[]
-var activeTabId;
-chrome.tabs.onActivated.addListener(async info => {
-  chrome.action.disable();
-  const tab = await chrome.tabs.get(info.tabId);
-  const regex = /(https?:\/\/(.+?\.)?ticketmaster\.com(\/[A-Za-z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;\=]*)?)/g;
-  let m;
-  let mt=0;
-  while ((m = regex.exec(tab.url)) !== null) {
-      // This is necessary to avoid infinite loops with zero-width matches
-      if (m.index === regex.lastIndex) {
-          regex.lastIndex++;
-      }
-      // The result can be accessed through the `m`-variable.
-      m.forEach((match, groupIndex) => {
-        mt+1;
-        chrome.action.enable(info.tabId)
-          console.log(`Found match, group ${groupIndex}: ${match}`);
+chrome.tabs.onRemoved.addListener(function(tabid, removed) {
+  try {
+    
+  chrome.storage.local.get(['master_email'], function(result) {
+    if(result.master_email){
+      data_store=JSON.parse(result.master_email);
+      delete data_store[tabid];
+      chrome.storage.local.set({'master_email': JSON.stringify(data_store)}, function() {
       });
-  }
-});
-chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
-  chrome.action.disable();
-  doInCurrentTab( function(tab){ activeTabId = tab.id } );
-      const regex = /(https?:\/\/(.+?\.)?ticketmaster\.com(\/[A-Za-z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;\=]*)?)/g;
-      let m;
-      let mt=0;
-      while ((m = regex.exec(tab.url)) !== null) {
-          // This is necessary to avoid infinite loops with zero-width matches
-          if (m.index === regex.lastIndex) {
-              regex.lastIndex++;
-          }
-          // The result can be accessed through the `m`-variable.
-          m.forEach((match, groupIndex) => {
-            mt+1;
-            chrome.action.enable(tabId)
-              console.log(`Found match, group ${groupIndex}: ${match}`);
-          });
-      }
-    });
+    }else{
+    }
+  });
+} catch (error) {
+    
+}
+ });
+ 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {    
   if (request.contentScriptQuery == "getOTp") {
-var data = request.email;
-data_mails[activeTabId]=request.email;
-console.log(data_mails);
-chrome.storage.local.set({'master_email': data}, function() {
-  console.log('Value is set to ' + data);
-});
+var data_email = request.email;
+var current_tab=0;
+chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+  set_data(data_email,'',tabs);
    requestOptions=get_req(request.email)
     fetch("https://ticketmasterotp.herokuapp.com/getOTp", requestOptions).then((response)=>{
       if(response.status!==200)
       {
-        console.log('No-emailFound')
         sendResponse({code:'',message:"failed"})
         return
       }
         response.text().then((data)=>{
-          console.log(data.trim());
-          chrome.storage.local.set({'master_code': data.trim()}, function() {
-            console.log('Value is set to ' + data.trim());
-          });
+          set_data(data_email,data.trim(),tabs);
           sendResponse({code:data.trim(),message:"success"})
         });
     }).catch((error)=>{
-      console.log(error)
       sendResponse({code:'',message:"Failed Request"})
     })
-    return true;
+  });
+  return true;
+  }else if(request.contentScriptQuery == "gettab_id"){
+
   }
 });
 function doInCurrentTab(tabCallback) {
@@ -90,4 +63,24 @@ function get_req(email){
     mode:'cors'
   };
   return requestOptions;
+}
+function set_data(data="",code="",tabs=[]){
+  var data_store={};
+  try {
+    
+  chrome.storage.local.get(['master_email'], function(result) {
+    if(result.master_email){
+      data_store=JSON.parse(result.master_email);
+      data_store[tabs[0].id]={email:data,code:code}
+      chrome.storage.local.set({'master_email': JSON.stringify(data_store)}, function() {
+      });
+    }else{
+      data_store[tabs[0].id]={email:data,code:code};
+      chrome.storage.local.set({'master_email': JSON.stringify(data_store)}, function() {
+      });
+    }
+  });
+} catch (error) {
+    
+};
 }

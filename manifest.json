@@ -19,6 +19,7 @@
     ],
     "content_scripts":[{
       "matches":["https://www.ticketmaster.com/event/*","https://auth.ticketmaster.com/*"],
+      "all_frames":true,
       "js":["jquery.min.js","content-script.js"]
     }],
     "action": {

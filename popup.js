@@ -3,8 +3,6 @@ doInCurrentTab( function(tab){ activeTabId = tab.id } );
 var btn_submit=document.getElementById('getotp');
 document.addEventListener('DOMContentLoaded', function() {
     var text='';
-    setTimeout(async()=>console.log(
-       text=await window.navigator.clipboard.readText()), 3000)
     if(!test_mail(text)){
         document.getElementById('email').value=text;
     }
@@ -22,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
          },function (response) {
              if (response != undefined && response != "") {
                 //  alert(response.code)
-                 console.log(response.code)
+                //  console.log(response.code)
                  if(response.message=="success"){
                     document.getElementById('otp').value=response.code;
                     document.getElementById('getotpload').style.display="none";
@@ -61,26 +59,28 @@ function test_mail(email){
 }
 //JQUUERY
 $( document ).ready(function() {
+    chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+        // console.log(tabs[0].id);
+
     chrome.storage.local.get(['master_email'], function(result) {
-        console.log(result.master_email)
+        // console.log(result.master_email)
+        try{
         if(result.master_email!==undefined){
-            $('#email').val(result.master_email);
-        }
-      });
-      chrome.storage.local.get(['master_code'], function(result) {
-        console.log(result.master_code)
-        if(result.master_code!==undefined){
-            $('#otp').val(result.master_code);
+            const data_parse=JSON.parse(result.master_email);
+            $('#email').val(data_parse[tabs[0].id].email);
+            $('#otp').val(data_parse[tabs[0].id].code);
             document.getElementById('otp').addEventListener('click',()=>{
                 var textBox = document.getElementById("otp");
                 textBox.select();
                 document.execCommand("copy");
              })
-            chrome.storage.local.clear();
         }
+    } catch (error) {
+    
+    }
       });
 });
-
+});
 function doInCurrentTab(tabCallback) {
     chrome.tabs.query(
         { currentWindow: true, active: true },
