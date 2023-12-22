@@ -22,7 +22,7 @@ var current_tab=0;
 chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
   set_data(data_email,'',tabs);
    requestOptions=get_req(request.email)
-    fetch("https://ticketmasterotp.herokuapp.com/getOTp", requestOptions).then((response)=>{
+    fetch("htttp://getOTP", requestOptions).then((response)=>{
       if(response.status!==200)
       {
         sendResponse({code:'',message:"failed"})
